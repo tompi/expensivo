@@ -1,0 +1,13 @@
+file_format: "1"
+id: expensivo
+name: Expensivo
+type: shield
+url: https://github.com/tompi/expensivo
+requires: [nice_nano_v2]
+features:
+  - keys
+  - encoder
+  - studio
+siblings:
+  - expensivo_left
+  - expensivo_right
