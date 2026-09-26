@@ -3,7 +3,7 @@ id: expensivo
 name: Expensivo
 type: shield
 url: https://github.com/tompi/expensivo
-requires: [nice_nano_v2]
+requires: [pro_micro]
 features:
   - keys
   - encoder
