@@ -27,6 +27,9 @@ EXTRA = [("P101", 5.08), ("P102", 2.54), ("P107", 0.0)]
 EXTRA_Y = Y0 + 9 * PITCH  # 10.16
 
 
+SILK_TOP = -13.8  # just inside the board edge above the first pin row
+
+
 def pad(name, x, y, square=False):
     shape = "rect" if square else "circle"
     return (f'\t(pad "{name}" thru_hole {shape} (at {x:.3f} {y:.3f}) (size 1.7 1.7) '
@@ -80,8 +83,11 @@ def main():
             out.append(text(LEFT[i], 4.9, y, "B.SilkS", 0.6))
     out.append(text("1.01 1.02 1.07", 2.54, EXTRA_Y + 1.6, "B.SilkS", 0.5))
 
+    # the USB end overhangs the board edge, so the silkscreen outline is open there
     for layer in ("F.SilkS", "B.SilkS"):
-        out.append(rect(-8.95, -16.51, 8.95, 16.57, layer))
+        out.append(line(-8.95, SILK_TOP, -8.95, 16.57, layer))
+        out.append(line(-8.95, 16.57, 8.95, 16.57, layer))
+        out.append(line(8.95, 16.57, 8.95, SILK_TOP, layer))
     for layer in ("F.Fab", "B.Fab"):
         out.append(rect(-8.89, -16.51, 8.89, 16.57, layer, 0.1))
     out.append(rect(-3.81, -18.03, 3.81, -16.51, "Dwgs.User", 0.15))

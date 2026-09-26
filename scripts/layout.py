@@ -1,4 +1,5 @@
-"""Hole-to-key assignment shared by the PCB and firmware generators."""
+"""Hole-to-key assignment shared by the PCB, schematic and firmware generators."""
+import uuid
 
 # Pro Micro / nice!nano pinout, top view, USB up, components facing viewer
 NANO_LEFT = ["P0.06", "P0.08", "GND", "GND", "P0.17", "P0.20",
@@ -40,3 +41,8 @@ def key_pin(hole, back):
 def key_pins(back):
     """key reference -> nice!nano pin for one half."""
     return {key: key_pin(hole, back) for hole, key in HOLE_TO_KEY.items()}
+
+
+def symbol_uuid(ref):
+    """Fixed uuid of a part's schematic symbol; the PCB footprint links to it."""
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, "expensivo:symbol:" + ref))
