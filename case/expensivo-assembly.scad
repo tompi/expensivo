@@ -1,6 +1,6 @@
 // Visual assembly of both halves: case, pcb, nice!nano, switches and keycaps.
-// For looking at only (F5); the top case and cover are imported from the STLs
-// in build/case (in print orientation), so render those parts to STL first.
+// For looking at only (F5); the case parts are imported from the STLs in
+// build/case (in print orientation), so render those parts to STL first.
 // explode > 0 spreads the layers apart vertically to show what is inside.
 $fn = 34;
 step = 0.5;
@@ -134,7 +134,6 @@ module switches_and_caps() {
 
 // the insides of one half, in the front view frame
 module insides(left) {
-    color(case_color) bottom();
     translate([0, 0, lift(L_PCB)]) {
         pcb();
         sockets(left);
@@ -144,8 +143,10 @@ module insides(left) {
     }
 }
 
-// top case and cover STLs, turned back from their print orientation
+// bottom plate, top case and cover from their STLs; the bottom plate is printed
+// the way it sits, the others are turned back from their print orientation
 module top_parts(side) {
+    color(case_color) import(str("../build/case/expensivo-bottom-", side, ".stl"));
     if (show_top) color(case_color) translate([0, 0, lift(L_TOP)])
         rotate([0, 180, 0]) translate([0, 0, -case_top])
             import(str("../build/case/expensivo-top-", side, ".stl"));
