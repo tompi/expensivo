@@ -1,5 +1,5 @@
 // hotswap socket is ~1.75 high at the highest.
-$fn = $preview ? 10 : 50;
+$fn = $preview ? 10 : 96;
 include <modules.scad>
 
 // silicone bumpers and magnets, in KiCad coordinates (front view). All clear the board

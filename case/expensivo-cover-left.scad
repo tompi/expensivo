@@ -1,7 +1,7 @@
 // Optional cover over the nice!nano; holds on with two 6x2 mm magnets,
 // glued into the cover and the top case (mind the polarity).
 step = 0.04;
-$fn = $preview ? 10 : 50;
+$fn = $preview ? 10 : 96;
 include <modules.scad>
 
 // Printed upside down, top face on the bed

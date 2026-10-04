@@ -1,5 +1,5 @@
 step = 0.04;
-$fn = $preview ? 10 : 50;
+$fn = $preview ? 10 : 96;
 include <modules.scad>
 
 // Rotate so you dont need to do that in extruder

@@ -2,7 +2,7 @@
 // For looking at only (F5); the top case and cover are imported from the STLs
 // in build/case (in print orientation), so render those parts to STL first.
 // explode > 0 spreads the layers apart vertically to show what is inside.
-$fn = 24;
+$fn = 34;
 step = 0.5;
 include <modules.scad>
 

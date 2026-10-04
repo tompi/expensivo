@@ -24,7 +24,7 @@ are in KiCad coordinates, see `at()` in `modules.scad`.
 Compared to the cheapino case: no RJ45 or diode cutouts; both halves get a
 nice!nano well, a snug USB-C opening in a flat end face (lower half in the top
 frame, upper half in the cover), a slot for the power switch lever and
-a hole to press reset (through the cover too). The battery sits under the nice!nano,
+room for the reset button (take the cover off to press it). The battery sits under the nice!nano,
 between the socket rows, and may stick out about 6 mm past its end. The nano's stack (socket height, parts, mid-mount USB-C position and size,
 clearances) is set in the "cover over the nice!nano" part of `modules.scad`.
 To fit the encoder after all, pass `encoder=true` in `expensivo-top-right.scad`;

@@ -155,25 +155,52 @@ function wall_profile(i, t) = min(quarter_round(i), quarter_round(t + 1 - (i + 1
 // Board outline plus the nano's USB end, which overhangs the board edge.
 module shell_outline() {
     base();
-    translate([nano[0] - fit, nano[1]]) square([nano[2] - nano[0] + 2 * fit, nano[3] - nano[1] + fit]);
+    // out to the board's straight side edge, so that corner is one clean curve
+    translate([nano[0] - fit, nano[1]]) square([max(nano[2] + fit, mcu_edge_x) - nano[0] + fit, nano[3] - nano[1] + fit]);
 }
 
 module case() {
     color("red")
     for (i = [0:step:case_top - 1])
-        translate([0,0,i]) linear_extrude(height=1)
+        translate([0,0,i]) linear_extrude(height=1) difference() {
             offset(delta = wall_profile(i, case_top - 1) + 1) shell_outline();
+            // under the skirt the case's own top rounding doesn't apply at this corner
+            end_corner_mask(mcu_edge_x + 1 +
+                (i >= skirt_bottom - seat_round_ledge ? edge_bulge : wall_profile(i, case_top - 1)));
+        }
 }
 
-// The cover over the nice!nano, sitting on the case top. Its outer walls are
-// rounded top and bottom like the case, so a groove marks the joint.
+// The flat USB end cuts through the rounding of the corner where it meets the
+// outer side; round that corner again, at the side wall's position xs.
+end_corner_r = 3;
+module end_corner_band(r_in, r_out) {
+    intersection() {
+        translate(end_c) square(50);
+        translate(end_c) difference() { circle(r=r_out); circle(r=r_in); }
+    }
+}
+module end_corner_mask(xs) {
+    r = end_corner_r;
+    translate([xs - r, usb_mouth - r]) difference() {
+        square(r + 10);
+        circle(r=r);
+    }
+}
+
+// The cover over the nice!nano, sitting on the case top. Along the outer side
+// a skirt reaches down over the case's top edge to where its rounding starts,
+// so case and cover form one wall, rounded only at the bottom and the top.
 module cover_shell() {
     color("red")
-    for (i = [case_top:step:hump_top - 1])
+    for (i = [skirt_bottom:step:hump_top - 1])
         translate([0,0,i]) linear_extrude(height=1)
-            intersection() {
-                hump_outer(i - case_top, hump_top - 1 - case_top);
-                hump_slice(i + 1);
+            difference() {
+                intersection() {
+                    hump_outer(i, hump_top - 1);
+                    hump_slice(i + 1);
+                    if (i < case_top) skirt_ring();
+                }
+                end_corner_mask(mcu_edge_x + wall_profile(i, hump_top - 1) + 1);
             }
 }
 
@@ -239,9 +266,17 @@ usb_zc = top_of_pcb + socket_height - usb_below + usb_height / 2;
 usb_mouth = nano[3] + usb_protrude;
 end_x0 = nano[0] - fit - hump_wall;   // the flat end spans the nano column
 end_inset = 2.5;                      // above the nano, the inside stops this far from the end
+// centre of that corner's rounding where the wall bulges out fully; the skirt and
+// the step under it are rounded about the same centre, so they nest
+end_c = [mcu_edge_x + edge_bulge + 1 - end_corner_r, usb_mouth - end_corner_r];
 
 // The cover runs from above the thumb keys to the nano's USB end.
 hump_bottom = encoder_pads[1] - 0.2;
+
+// The cover's skirt over the case's top edge, on the outer side.
+skirt_bottom = case_top - edge_radius;   // where the case's top rounding starts
+skirt_t = 1.2;
+skirt_clr = 0.15;
 
 // Under the cover everything is open, from the pcb up to the roof, so the
 // battery can stick out past the nano. Only a solid block at the thumb end,
@@ -264,8 +299,61 @@ cover_pegs = [[block_x1 - 0.8 - peg_hole_d / 2, row1_y], [block_x0 + 0.8 + peg_h
 // Outer sides of the cover (the board's right edge and the nano's USB end),
 // layer i of a wall whose last layer starts at t.
 module hump_outer(i, t) {
-    offset(r = wall_profile(i, t) + 1)
-        translate([-500, -500]) square([mcu_edge_x + 500, nano[3] + fit + 500]);
+    offset(r = wall_profile(i, t) + 1) cover_edge();
+}
+
+// The outline the cover's outer walls follow: the case's own (board plus the
+// nano's overhanging USB end), filled in towards the keys, so the cover's
+// sides and corners line up with the case below.
+module cover_edge() {
+    shell_outline();
+    translate([-500, -500]) square([mcu_edge_x - 2 + 500, nano[3] + 500]);
+}
+
+// The skirt's band, inside the full-bulge outer wall; the case steps in under it.
+module skirt_ring() {
+    difference() {
+        offset(r = edge_bulge + 1) cover_edge();
+        offset(r = edge_bulge + 1 - skirt_t) cover_edge();
+    }
+    end_corner_band(end_corner_r - skirt_t, end_corner_r);
+}
+
+// The case steps in under the skirt. With the cover off that step shows, so
+// its edges are rounded: the stepped-in wall's top edge, and (smaller, as it is
+// the parting line with the cover on) the ledge's outer edge.
+seat_round_top = 1.0;
+seat_round_ledge = 0.6;
+
+module seat_band(o) {
+    intersection() {
+        hump_area();
+        union() {
+            difference() {
+                offset(r = 50) cover_edge();
+                offset(r = o) cover_edge();
+            }
+            // at the USB end corner, rounded about the outer corner's centre
+            translate(end_c) difference() {
+                square(50);
+                circle(r = end_corner_r - (edge_bulge + 1 - o));
+            }
+        }
+    }
+}
+
+function round_in(r, d) = r - sqrt(max(0, pow(r, 2) - pow(min(d, r), 2)));
+
+module skirt_seat() {
+    outer = edge_bulge + 1;
+    wall = outer - skirt_t - skirt_clr;
+    translate([0, 0, skirt_bottom]) linear_extrude(case_top - skirt_bottom + 1) seat_band(wall);
+    r1 = seat_round_top;
+    for (z = [case_top - r1 : 0.1 : case_top - 0.05])
+        translate([0, 0, z]) linear_extrude(0.11) seat_band(wall - round_in(r1, z + 0.1 - (case_top - r1)));
+    r2 = seat_round_ledge;
+    for (z = [skirt_bottom - r2 : 0.1 : skirt_bottom - 0.05])
+        translate([0, 0, z]) linear_extrude(0.11) seat_band(outer - round_in(r2, z - (skirt_bottom - r2)));
 }
 
 // Inner sides: next to the keys, clear of every keycap, corners rounded.
@@ -352,13 +440,9 @@ module power_switch_cutout() {
     }
 }
 
-// Room for the reset button, and a hole above it to press it with a pin.
+// Room for the reset button; take the cover off to press it.
 module reset_cutout() {
-    color("orange") translate([0, 0, top_of_pcb]) {
-        box(reset_button, 2.6, 0.5);
-        translate([(reset_button[0] + reset_button[2]) / 2, (reset_button[1] + reset_button[3]) / 2, 0])
-            cylinder(h=20, d=3.5);
-    }
+    color("orange") translate([0, 0, top_of_pcb]) box(reset_button, 2.6, 0.5);
 }
 
 // Only when an encoder is fitted; otherwise the raised section covers its spot.
@@ -377,6 +461,7 @@ module top_cutouts(encoder=false) {
     translate([0,0,top_of_pcb]) switch_holes();
     mcu_cutout();
     usb_end_cut(round_bottom=0);
+    skirt_seat();
     power_switch_cutout();
     reset_cutout();
     // open up to the cover, so the battery has room past the nano
