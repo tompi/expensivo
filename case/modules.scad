@@ -213,11 +213,15 @@ module mounting_hole_inserts() {
 socket_height = 4.9;     // pcb top to the nano's underside
 nano_thickness = 1.6;
 nano_parts = 1.3;        // parts and trimmed pins on top of the nano
-usb_height = 3.3;        // USB-C receptacle, above the nano's top face
-usb_width = 9.0;
-usb_depth = 7.5;         // from the nano's USB edge inwards
-plug_width = 13;         // USB-C plug body, with clearance
-plug_height = 7;
+// USB-C receptacle: mid-mount, through the nano's board (measured on the
+// nice!nano v2 model; the common 33 x 17.78 mm clones match)
+usb_width = 8.94;
+usb_height = 2.96;
+usb_below = 1.38;        // shell bottom below the nano's underside
+usb_protrude = 0.74;     // shell mouth past the nano's board edge
+usb_depth = 7.3;         // shell length
+usb_fit = 0.25;          // clearance around the shell
+end_round = 1.5;         // radius of the flat USB end's outer edges
 fit = 0.3;               // clearance around the nano
 roof = 1.2;
 keycap = 18.2;
@@ -226,9 +230,15 @@ hump_wall = 1.5;         // side wall between the nano and the keys next to it
 hump_round = edge_radius;  // radius of the raised section's top edges, as on the case edge
 
 nano_top = top_of_pcb + socket_height + nano_thickness;
-usb_top = nano_top + usb_height + fit;
-hump_top = usb_top + roof;
+cavity_top = nano_top + nano_parts + fit;
+hump_top = cavity_top + roof;
 nano_x = (nano[0] + nano[2]) / 2;
+usb_zc = top_of_pcb + socket_height - usb_below + usb_height / 2;
+// the case's USB end is a flat face flush with the receptacle's mouth, so the
+// plug's body seats against it and only its metal tip goes in
+usb_mouth = nano[3] + usb_protrude;
+end_x0 = nano[0] - fit - hump_wall;   // the flat end spans the nano column
+end_inset = 2.5;                      // above the nano, the inside stops this far from the end
 
 // The cover runs from above the thumb keys to the nano's USB end.
 hump_bottom = encoder_pads[1] - 0.2;
@@ -283,6 +293,7 @@ module cover_space() {
     difference() {
         offset(delta=-cover_wall) cover_footprint();
         translate([-500, -500]) square([block_x1 + 500, block_y1 + 500]);
+        translate([-500, nano[3] - end_inset]) square(1000);
         for (h = mounting_holes) translate([h[0], h[1]]) circle(r=1.4 + 1);
     }
 }
@@ -295,22 +306,40 @@ module hump_slice(z) {
     offset(delta=d) hump_area();
 }
 
-// Snug room for the nano on its sockets, the battery under it and the USB plug.
+// Snug room for the nano on its sockets, the battery under it and the USB-C port.
 module mcu_cutout() {
     color("pink") {
-        // sockets, nano and battery (between the socket rows, under the nano)
-        translate([0, 0, top_of_pcb])
-            box(nano, nano_top + nano_parts + fit - top_of_pcb, fit);
+        // sockets, nano and battery (between the socket rows, under the nano); at
+        // the USB end the nano's board edge is only usb_protrude from the case's end
+        // face, so no clearance there, and the parts above it stay further back
+        translate([nano[0] - fit, nano[1] - fit, top_of_pcb])
+            cube([nano[2] - nano[0] + 2 * fit, nano[3] - nano[1] + fit, nano_top + fit - top_of_pcb]);
+        translate([nano[0] - fit, nano[1] - fit, top_of_pcb])
+            cube([nano[2] - nano[0] + 2 * fit, nano[3] - end_inset - nano[1] + fit, cavity_top - top_of_pcb]);
         // battery pads just below the nano, with room to bend the wires
-        translate([0, 0, top_of_pcb]) box(battery_pads, socket_height, 1);
-        // USB-C receptacle
-        translate([nano_x - usb_width / 2 - fit, nano[3] - usb_depth, nano_top - fit])
-            cube([usb_width + 2 * fit, usb_depth + 10, usb_top - nano_top + fit]);
-        // U-shaped notch in the end wall, so the plug's body can reach the receptacle
-        plug_bottom = nano_top + usb_height / 2 - plug_height / 2;
-        translate([nano_x, nano[3] - 0.5, 0]) rotate([-90, 0, 0]) linear_extrude(20)
-            translate([0, -(plug_bottom + 15)])
-                offset(r=1) offset(delta=-1) square([plug_width, 30], center=true);
+        translate([0, 0, top_of_pcb]) box(battery_pads, socket_height, fit);
+        // the USB-C shell, through the end wall: a snug rounded slot
+        translate([nano_x, usb_mouth - usb_depth, usb_zc]) rotate([-90, 0, 0])
+            linear_extrude(usb_depth + 10) hull()
+                for (dx = [-1, 1]) translate([dx * (usb_width - usb_height) / 2, 0])
+                    circle(d=usb_height + 2 * usb_fit);
+    }
+}
+
+// Everything past the flat USB end, with its bottom (top frame) or top (cover)
+// edge rounded.
+module usb_end_cut(round_bottom=undef, round_top=undef) {
+    r = end_round;
+    translate([end_x0, 0, 0]) rotate([90, 0, 90]) linear_extrude(500) {
+        translate([usb_mouth, -50]) square([500, 200]);
+        if (!is_undef(round_bottom)) difference() {
+            translate([usb_mouth - r, round_bottom - 1]) square([r + 1, r + 1]);
+            translate([usb_mouth - r, round_bottom + r]) circle(r=r);
+        }
+        if (!is_undef(round_top)) difference() {
+            translate([usb_mouth - r, round_top - r]) square([r + 1, r + 1]);
+            translate([usb_mouth - r, round_top - r]) circle(r=r);
+        }
     }
 }
 
@@ -347,6 +376,7 @@ module top_cutouts(encoder=false) {
     linear_extrude(top_of_pcb) offset(delta=0.45) base();
     translate([0,0,top_of_pcb]) switch_holes();
     mcu_cutout();
+    usb_end_cut(round_bottom=0);
     power_switch_cutout();
     reset_cutout();
     // open up to the cover, so the battery has room past the nano
@@ -372,8 +402,9 @@ module cover() {
                 cylinder(h=0.5, d1=peg_d - 1, d2=peg_d);
             }
         }
-        translate([0, 0, case_top - 1]) linear_extrude(usb_top - case_top + 1) cover_space();
+        translate([0, 0, case_top - 1]) linear_extrude(cavity_top - case_top + 1) cover_space();
         mcu_cutout();
+        usb_end_cut(round_top=hump_top);
         reset_cutout();
         for (m = cover_magnets)
             translate([m[0], m[1], case_top - 1]) cylinder(h=magnet_depth + 1, d=magnet_d);

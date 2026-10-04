@@ -22,9 +22,10 @@ so the case follows PCB changes. Positions typed in by hand (bumpers, magnets)
 are in KiCad coordinates, see `at()` in `modules.scad`.
 
 Compared to the cheapino case: no RJ45 or diode cutouts; both halves get a
-nice!nano well, a notch for the USB plug, a slot for the power switch lever and
+nice!nano well, a snug USB-C opening in a flat end face (lower half in the top
+frame, upper half in the cover), a slot for the power switch lever and
 a hole to press reset (through the cover too). The battery sits under the nice!nano,
-between the socket rows, and may stick out about 6 mm past its end. The nano's stack (socket height, parts, USB-C size,
+between the socket rows, and may stick out about 6 mm past its end. The nano's stack (socket height, parts, mid-mount USB-C position and size,
 clearances) is set in the "cover over the nice!nano" part of `modules.scad`.
 To fit the encoder after all, pass `encoder=true` in `expensivo-top-right.scad`;
 the cover's magnets use that spot, so that half then goes without a cover.
@@ -32,3 +33,8 @@ the cover's magnets use that spot, so that half then goes without a cover.
 Render with a recent OpenSCAD snapshot with the manifold backend enabled, e.g.
 
     openscad --enable=manifold -o top-left.stl expensivo-top-left.scad
+
+The USB-C numbers are measured on the nice!nano v2 model and match the common
+33 x 17.78 mm clones; check them against your board (height of the shell
+above the PCB, and how far it sticks out past the nano's edge) before printing.
+The end wall beside the port is only as thick as that overhang (0.74 mm).

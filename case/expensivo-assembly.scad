@@ -103,10 +103,15 @@ module mcu() {
         // pins through the nano
         color(copper_color) for (x = pin_x, i = [0:11])
             translate([x, nano[3] - 3.2 - i * 2.54, 0]) cylinder(h=nano_thickness + 0.8, d=0.8);
-        // controller and USB-C receptacle
+        // controller
         color("#111111") translate([nano_x - 3.5, nano[1] + 12, nano_thickness]) cube([7, 7, 0.9]);
-        color("#c0c0c0") translate([nano_x - 4.45, nano[3] - usb_depth + 0.6, nano_thickness])
-            cube([8.9, usb_depth, 3.2]);
+    }
+    // mid-mount USB-C receptacle, through the nano's board
+    color("#c0c0c0") difference() {
+        translate([nano_x, usb_mouth - usb_depth, usb_zc]) rotate([-90, 0, 0]) linear_extrude(usb_depth)
+            hull() for (dx = [-1, 1]) translate([dx * (usb_width - usb_height) / 2, 0]) circle(d=usb_height);
+        translate([nano_x, usb_mouth - 6.5, usb_zc]) rotate([-90, 0, 0]) linear_extrude(7)
+            hull() for (dx = [-1, 1]) translate([dx * (usb_width - usb_height) / 2, 0]) circle(d=usb_height - 0.6);
     }
 }
 

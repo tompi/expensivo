@@ -109,4 +109,19 @@
   (pad "" np_thru_hole circle (at 5.08 0) (size 1.7018 1.7018) (drill 1.7018) (layers *.Cu *.Mask))
   (pad "" np_thru_hole circle (at -5.08 0) (size 1.7018 1.7018) (drill 1.7018) (layers *.Cu *.Mask))
   (pad 2 smd rect (at 7.56 -2.54) (size 2.55 2.5) (layers F.Cu F.Paste F.Mask))
+  (model "${KIPRJMOD}/../lib/expensivo.3dshapes/SW_Hotswap_Kailh.wrl"
+    (offset (xyz 0 0 0))
+    (scale (xyz 1 1 1))
+    (rotate (xyz 0 0 180))
+  )
+  (model "${KIPRJMOD}/../lib/expensivo.3dshapes/SW_Cherry_MX_PCB.wrl"
+    (offset (xyz 0 0 0))
+    (scale (xyz 1 1 1))
+    (rotate (xyz 0 0 180))
+  )
+  (model "${KIPRJMOD}/../lib/expensivo.3dshapes/Keycap_DSA_1u.wrl"
+    (offset (xyz 0 0 11.3))
+    (scale (xyz 1 1 1))
+    (rotate (xyz 0 0 0))
+  )
 )

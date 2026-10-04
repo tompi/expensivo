@@ -36,10 +36,14 @@ JP_XL, JP_XR = XL + 3.0, XR - 3.0
 ENC = (162.0, 104.0)            # encoder shaft, back side
 PWR = (173.3, 95.5)             # side-actuated slide switch at the right edge
 RST = (172.3, 106.0)            # reset button
-BAT = [(158.8, 93.0), (156.26, 93.0)]  # battery + / -
+# battery + / -, one above the other beside the nano's end, clear of the battery
+# sliding in under the nano (between the socket rows, from x 159.4)
+BAT = [(157.0, 92.2), (157.0, 94.74)]
 LOGO = (162.4, 108.1)           # between the encoder's mounting tabs and its A/B/C pins
 LOGO_SIZE = 2.5
 BYLINE = (164.6, 115.4)
+VERSION = "v1"
+VERSION_AT = (159.3, 115.45)    # left of the byline
 
 # --- outline --------------------------------------------------------------
 # board around each key centre (left, top, right, bottom); +x is the socket pad side
@@ -196,11 +200,16 @@ def main():
     key_net = {k: f"KEY_{k}" for k in HOLE_TO_KEY.values()}
 
     # switches: pad 1 -> GND, pad 2 -> key net
+    # the keys come from the cheapino board; give them our library footprint's 3D models
+    key_lib = load(LIB, "Kailh_socket_MX_optional_reversible")
     hole_count = 0
     for fp in board.GetFootprints():
         ref = fp.GetReference()
         if ref.startswith("K"):
             fp.SetValue("MX")
+            fp.Models().clear()
+            for m in key_lib.Models():
+                fp.Models().push_back(m)
             fp.SetFPID(pcbnew.LIB_ID("expensivo", "Kailh_socket_MX_optional_reversible"))
             fp.SetAttributes(pcbnew.FP_THROUGH_HOLE)
             if ref in FLIPPED_KEYS:
@@ -299,10 +308,17 @@ def main():
 
     # battery pads (THT, usable from either side)
     batlib = KLIB + "Connector_PinHeader_2.54mm.pretty"
-    bat = place(board, load(batlib, "PinHeader_1x02_P2.54mm_Vertical"), "BT1", BAT[0], rot=-90,
+    bat = place(board, load(batlib, "PinHeader_1x02_P2.54mm_Vertical"), "BT1", BAT[0], rot=0,
                 value="Battery")
+    # wire pads, not a header: drop the header outline, it would run into the nano's
+    for g in list(bat.GraphicalItems()):
+        if g.GetLayer() in (pcbnew.F_SilkS, pcbnew.B_SilkS) and isinstance(g, pcbnew.PCB_SHAPE):
+            bat.Remove(g)
+            removed.append(g)
     for p in bat.Pads():
         p.SetNet(net("BAT_P" if p.GetNumber() == "1" else "GND"))
+        want = BAT[0] if p.GetNumber() == "1" else BAT[1]
+        assert all(abs(a - b) < 0.01 for a, b in zip(pad_xy(p), want)), (p.GetNumber(), pad_xy(p), want)
 
     removed += trim_outline(board)
 
@@ -347,14 +363,20 @@ def main():
                          (bb.GetRight(), bb.GetBottom()), (bb.GetLeft(), bb.GetBottom())):
                 keepout.Outline().Append(x, y)
             board.Add(keepout)
+    for side in ("F.SilkS", "B.SilkS"):
+        text(VERSION, VERSION_AT, side, 1.0)
+    board.GetTitleBlock().SetRevision(VERSION.lstrip("v"))
     text("LEFT", (NANO[0], 76.6), "F.SilkS", 0.8)
-    text("JP side", (NANO[0], 78.0), "F.SilkS", 0.8)
     text("RIGHT", (NANO[0], 76.6), "B.SilkS", 0.8)
-    text("JP side", (NANO[0], 78.0), "B.SilkS", 0.8)
+    # between the jumper columns: which ones to bridge on this side
+    for side, lines in (("F.SilkS", ("LEFT:", "BRIDGE", "ALL 4")), ("B.SilkS", ("RIGHT:", "BRIDGE", "ALL 4"))):
+        for i, line in enumerate(lines):
+            text(line, (NANO[0], ROW_Y[1] + 1.2 * i), side, 0.8)
     # - is left of + seen from the front, so the order flips on the back
-    bat_label = ((BAT[0][0] + BAT[1][0]) / 2, BAT[0][1] + 1.9)
-    text("-  +", bat_label, "F.SilkS", 0.8)
-    text("+  -", bat_label, "B.SilkS", 0.8)
+    # left of the pads; the order is the same seen from either side
+    for side in ("F.SilkS", "B.SilkS"):
+        text("+", (BAT[0][0] - 1.7, BAT[0][1]), side, 0.8)
+        text("-", (BAT[1][0] - 1.7, BAT[1][1]), side, 0.8)
     for side in ("F.SilkS", "B.SilkS"):
         text("RST", (RST[0], RST[1] + 5.2), side, 0.8)
         text("PWR", (PWR[0] - 3.2, PWR[1]), side, 0.8, rot=90)

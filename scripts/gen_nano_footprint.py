@@ -52,6 +52,16 @@ def rect(x1, y1, x2, y2, layer, w=0.12):
             line(x2, y2, x1, y2, layer, w) + line(x1, y2, x1, y1, layer, w))
 
 
+SOCKET_H = 4.9  # pcb to the nano's underside
+
+
+def model(path, offset=(0, 0, 0), scale=(1, 1, 1), rotate=(0, 0, 0)):
+    # model offsets are in mm with y pointing up, unlike footprint coordinates
+    f = lambda v: " ".join(f"{x:g}" for x in v)
+    return (f'\t(model "{path}"\n\t\t(offset (xyz {f(offset)}))\n'
+            f'\t\t(scale (xyz {f(scale)}))\n\t\t(rotate (xyz {f(rotate)}))\n\t)\n')
+
+
 def main():
     out = []
     out.append('(footprint "nice_nano_reversible"\n\t(version 20240108)\n\t(generator "expensivo")\n'
@@ -92,6 +102,13 @@ def main():
         out.append(rect(-8.89, -16.51, 8.89, 16.57, layer, 0.1))
     out.append(rect(-3.81, -18.03, 3.81, -16.51, "Dwgs.User", 0.15))
     out.append(text("USB", 0, -17.3, "Dwgs.User", 0.8))
+    # 3D: the nice!nano (downloaded by build.sh, see lib/expensivo.3dshapes/README.md)
+    # on two 12-pin sockets, KiCad's 8.5 mm model squashed to the 4.9 mm used here
+    out.append(model("${KIPRJMOD}/../build/3d/Nice_Nano_V2.step", offset=(0, 0, SOCKET_H)))
+    for x in (-X, X):
+        out.append(model("${KICAD8_3DMODEL_DIR}/Connector_PinSocket_2.54mm.3dshapes/"
+                         "PinSocket_1x12_P2.54mm_Vertical.wrl",
+                         offset=(x, -Y0, 0), scale=(1, 1, SOCKET_H / 8.5)))
     out.append(')\n')
 
     here = os.path.dirname(os.path.abspath(__file__))

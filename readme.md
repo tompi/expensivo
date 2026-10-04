@@ -47,7 +47,7 @@ The PCB is reversible, so it matters which side you solder on:
 - **right half:** everything on the back side (marked RIGHT); hotswap sockets on the front
 - the nice!nano goes on the same side as its label, components facing up
 - bridge the four solder jumpers next to the nano's top pins on the side the
-  nano is on (JP side), and leave the other four open
+  nano is on (marked "BRIDGE ALL 4"), and leave the other four open
 - the power switch and reset button have a footprint on each side; fit only
   the one on top
 - battery to the pads below the nano, + and - are marked
