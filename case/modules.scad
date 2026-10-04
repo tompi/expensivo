@@ -167,6 +167,12 @@ function wall_profile(i, t) = min(quarter_round(i), quarter_round(t + 1 - (i + 1
 // Board outline plus the nano's USB end, which overhangs the board edge.
 module shell_outline() {
     base();
+    // the board has a small pocket between the inner thumb key (K18) and the
+    // keys above it (K3, K6); the case fills it, so its wall runs straight up
+    // from the thumb key to the main body. KiCad coordinates: K18 at
+    // (140.34, 122.56), K3 at (145.01, 100.86), K6 at (126.01, 98.32).
+    at([140.34 - 8.1, 122.56 - 8 + 1])    // case y points up, KiCad y down
+        square([(145.01 - 8.1 + 1) - (140.34 - 8.1), (122.56 - 8 + 1) - (98.32 + 8 - 1)]);
     // out to the board's straight side edge, so that corner is one clean curve
     translate([nano[0] - fit, nano[1]]) square([max(nano[2] + fit, mcu_edge_x) - nano[0] + fit, nano[3] - nano[1] + fit]);
 }
