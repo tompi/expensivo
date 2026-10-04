@@ -100,10 +100,22 @@ module switches(bottom) {
 }
 
 // pins of the nano, encoder, power switch and battery wires poking through
+// The nano's two pin rows, and its three middle pins, get one slot each;
+// other pins their own pocket.
+function pad_x(p) = (p[0] + p[2]) / 2;
+function pad_y(p) = (p[1] + p[3]) / 2;
+function under_nano(p) = pad_y(p) > nano[1] && pad_y(p) < nano[3];
+function on_nano_row(p) = under_nano(p) && abs(abs(pad_x(p) - nano_x) - 7.62) < 0.3;
+function nano_middle(p) = under_nano(p) && abs(pad_x(p) - nano_x) < 6;
 module tht_pockets() {
-    color("#7f7f7f")
-    for (p = tht_pads)
-        box(p, 1.5, 0.4);
+    color("#7f7f7f") {
+        for (side = [-1, 1])
+            hull() for (p = tht_pads)
+                if (on_nano_row(p) && sign(pad_x(p) - nano_x) == side) box(p, 1.5, 0.4);
+        hull() for (p = tht_pads) if (nano_middle(p)) box(p, 1.5, 0.4);
+        for (p = tht_pads)
+            if (!on_nano_row(p) && !nano_middle(p)) box(p, 1.5, 0.4);
+    }
 }
 
 module mounting_hole() {
