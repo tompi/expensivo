@@ -1,0 +1,9 @@
+/* Test shield: run the nRF52840 on its LDO regulators instead of DC-DC,
+ * to check whether a nano's DC-DC inductor is faulty. */
+&reg1 {
+    regulator-initial-mode = <NRF5X_REG_MODE_LDO>;
+};
+
+&reg0 {
+    status = "disabled";
+};

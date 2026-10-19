@@ -1,9 +1,8 @@
+# Test branch: DC-DC off
 include:
   - board: nice_nano//zmk
-    shield: expensivo_left
+    shield: settings_reset nodcdc
+  - board: nice_nano//zmk
+    shield: expensivo_left nodcdc
     snippet: studio-rpc-usb-uart
     cmake-args: -DCONFIG_ZMK_STUDIO=y
-  - board: nice_nano//zmk
-    shield: expensivo_right
-  - board: nice_nano//zmk
-    shield: settings_reset
