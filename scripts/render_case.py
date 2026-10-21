@@ -16,7 +16,7 @@ starts in mid-air or rests only on material thinner than an extrusion line.
 The script exits non-zero if any part fails.
 
 Needs OpenSCAD with the manifold backend (a recent snapshot) and
-    pip install numpy trimesh shapely manifold3d scipy networkx
+    pip install numpy trimesh shapely manifold3d scipy networkx rtree
 --openscad (or $OPENSCAD) may be a whole command, e.g. a docker run; it is run
 from the repository root with paths relative to it.
 """

@@ -35,7 +35,7 @@ STLs are the `case-stl` artifact of the "Case STLs" run in the Actions tab.
 
 To render locally, use a recent OpenSCAD snapshot (manifold backend) and run
 
-    pip install numpy trimesh shapely manifold3d scipy networkx
+    pip install numpy trimesh shapely manifold3d scipy networkx rtree
     scripts/render_case.py            # all parts, into build/case
 
 It exports each part at full precision, collapses features below 0.1 µm
