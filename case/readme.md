@@ -33,9 +33,18 @@ the cover's magnets use that spot, so that half then goes without a cover.
 GitHub Actions renders every part whenever something in `case/` changes; the
 STLs are the `case-stl` artifact of the "Case STLs" run in the Actions tab.
 
-To render locally, use a recent OpenSCAD snapshot with the manifold backend enabled, e.g.
+To render locally, use a recent OpenSCAD snapshot (manifold backend) and run
 
-    openscad --enable=manifold -o top-left.stl expensivo-top-left.scad
+    pip install numpy trimesh shapely manifold3d scipy networkx
+    scripts/render_case.py            # all parts, into build/case
+
+It exports each part at full precision, collapses features below 0.1 µm
+(OpenSCAD's own STL export rounds to float32, which turns near-coincident
+faces into non-manifold edges and stray slivers that slicers report as
+errors or floating regions), and checks every STL: one watertight body, the
+model's exact size and volume, and no island in a 0.2 or 0.08 mm slice that
+starts in mid-air or rests on material thinner than an extrusion line. It
+exits non-zero if a part fails.
 
 The USB-C numbers are measured on the nice!nano v2 model and match the common
 33 x 17.78 mm clones; check them against your board (height of the shell
