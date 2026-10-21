@@ -1,20 +1,16 @@
 name: Case STLs
 
-# Renders every printable case part to stl/ and commits the result.
+# Renders every printable case part and uploads them as the "case-stl" artifact.
 on:
   push:
-    branches: [master]
+    paths:
+      - "case/**"
+      - ".github/workflows/case.yml"
+  pull_request:
     paths:
       - "case/**"
       - ".github/workflows/case.yml"
   workflow_dispatch:
-
-permissions:
-  contents: write
-
-concurrency:
-  group: case-stl
-  cancel-in-progress: true
 
 jobs:
   render:
@@ -34,15 +30,8 @@ jobs:
           fail=0; for job in $(jobs -p); do wait "$job" || fail=1; done
           exit $fail
 
-      - name: Commit and push
-        run: |
-          git add stl
-          if git diff --cached --quiet; then
-            echo "STLs unchanged"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Case: regenerate STLs for ${GITHUB_SHA::7}"
-          git pull --rebase
-          git push
+      - uses: actions/upload-artifact@v4
+        with:
+          name: case-stl
+          path: stl/*.stl
+          if-no-files-found: error

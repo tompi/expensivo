@@ -30,8 +30,8 @@ clearances) is set in the "cover over the nice!nano" part of `modules.scad`.
 To fit the encoder after all, pass `encoder=true` in `expensivo-top-right.scad`;
 the cover's magnets use that spot, so that half then goes without a cover.
 
-GitHub Actions renders every part to [`stl/`](../stl) and commits it whenever
-something in `case/` changes on master.
+GitHub Actions renders every part whenever something in `case/` changes; the
+STLs are the `case-stl` artifact of the "Case STLs" run in the Actions tab.
 
 To render locally, use a recent OpenSCAD snapshot with the manifold backend enabled, e.g.
 
