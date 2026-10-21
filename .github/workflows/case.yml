@@ -1,0 +1,48 @@
+name: Case STLs
+
+# Renders every printable case part to stl/ and commits the result.
+on:
+  push:
+    branches: [master]
+    paths:
+      - "case/**"
+      - ".github/workflows/case.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: case-stl
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Render STLs
+        run: |
+          mkdir -p stl
+          docker pull -q openscad/openscad:dev
+          for part in top-left top-right cover-left cover-right bottom-left bottom-right; do
+            docker run --rm -v "$PWD:/work" -w /work/case openscad/openscad:dev \
+              openscad --backend=manifold --export-format=binstl \
+              -o "../stl/expensivo-$part.stl" "expensivo-$part.scad" &
+          done
+          fail=0; for job in $(jobs -p); do wait "$job" || fail=1; done
+          exit $fail
+
+      - name: Commit and push
+        run: |
+          git add stl
+          if git diff --cached --quiet; then
+            echo "STLs unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Case: regenerate STLs for ${GITHUB_SHA::7}"
+          git pull --rebase
+          git push
