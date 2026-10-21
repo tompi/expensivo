@@ -132,13 +132,54 @@ module mounting_holes() {
         translate([h[0], h[1], 0]) mounting_hole();
 }
 
+// bumper recess: a cone, radius bumper_r at the plate's underside and 0.5 less
+// at its floor, bumper_depth up
+bumper_r = 5;
+bumper_depth = 1.2;
+function bumper_r_at(z) = bumper_r - 0.5 * (bottom_plate_thickness - z) / bumper_depth;
+
 module bumper() {
     color("#17becf")
     translate([0, 0, 2.5])
       cylinder(h=2, r=5);
     color("#17becf")
-    translate([0, 0, 1.3])
-      cylinder(h=1.2, r1=4.5, r2=5);
+    translate([0, 0, bottom_plate_thickness - bumper_depth])
+      cylinder(h=bumper_depth, r1=bumper_r - 0.5, r2=bumper_r);
+}
+
+// The bumper recesses are cut from the underside of the printed plate and
+// everything else from the top, so where a recess runs into another pocket
+// the two can leave a sliver between them that is thinner than an extrusion
+// line and starts in mid-air (slicers flag it as a floating region).
+// bumper_recesses() cuts the recesses at the given KiCad points plus the other
+// cuts passed as children, and also clears every gap narrower than min_wall
+// next to a recess (a closing of the recess and the cuts around it). It does
+// that band by band through the recess's depth; bumper_bands are the heights
+// where the other cuts end in there (pin pockets and mounting hole cones,
+// sockets, magnets), so a cut keeps its outline through a band. The closing
+// is taken of the recess and the cuts shrunk by 0.1, so the cleared area
+// overlaps them instead of ending on their faces, which would leave
+// zero-thickness slivers in the mesh.
+min_wall = 1;
+bumper_bands = [bottom_plate_thickness - bumper_depth, 1.5, 1.85, 2.1, bottom_plate_thickness];
+module cut_section(z) projection(cut = true) translate([0, 0, -z]) children();
+module bumper_recesses(points) {
+    children();
+    for (b = points) at(b) bumper();
+    s = 0.1;
+    for (i = [0 : len(bumper_bands) - 2]) {
+        z = bumper_bands[i];
+        h = bumper_bands[i + 1] - z;
+        r = bumper_r_at(z);  // the recess's narrowest in this band
+        translate([0, 0, z]) linear_extrude(h)
+            for (b = points) intersection() {
+                at(b) circle(r + min_wall);
+                offset(r = -min_wall / 2 - s) offset(r = min_wall / 2 + s) union() {
+                    at(b) circle(r - s);
+                    offset(r = -s) cut_section(z + h / 2) children();
+                }
+            }
+    }
 }
 
 module magnet() {
