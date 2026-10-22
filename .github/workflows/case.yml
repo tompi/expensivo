@@ -1,14 +1,16 @@
 name: Case STLs
 
-# Renders every printable case part and uploads them as the "case-stl" artifact.
+# Renders every printable case part, checks it and uploads them as the "case-stl" artifact.
 on:
   push:
     paths:
       - "case/**"
+      - "scripts/render_case.py"
       - ".github/workflows/case.yml"
   pull_request:
     paths:
       - "case/**"
+      - "scripts/render_case.py"
       - ".github/workflows/case.yml"
   workflow_dispatch:
 
@@ -18,17 +20,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Render STLs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tools
         run: |
-          mkdir -p stl
+          pip install numpy trimesh shapely manifold3d scipy networkx rtree
           docker pull -q openscad/openscad:dev
-          for part in top-left top-right cover-left cover-right bottom-left bottom-right; do
-            docker run --rm -v "$PWD:/work" -w /work/case openscad/openscad:dev \
-              openscad --backend=manifold --export-format=binstl \
-              -o "../stl/expensivo-$part.stl" "expensivo-$part.scad" &
-          done
-          fail=0; for job in $(jobs -p); do wait "$job" || fail=1; done
-          exit $fail
+
+      - name: Render and check STLs
+        run: |
+          python scripts/render_case.py -o stl \
+            --openscad "docker run --rm --user $(id -u):$(id -g) -v $PWD:/work -w /work openscad/openscad:dev openscad"
 
       - uses: actions/upload-artifact@v4
         with:
