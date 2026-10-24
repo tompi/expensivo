@@ -198,12 +198,14 @@ case_top = 9.1;
 
 // Edge profile of a wall whose last 1mm layer starts at t: bulges out to
 // edge_bulge, rounded into the bottom and the top by a quarter ellipse,
-// edge_bulge wide and edge_radius high. At half the case height the two meet
-// and the side is round from top to bottom; edge_radius = edge_bulge gives
+// edge_bulge wide and edge_radius high. At about half the case height the two
+// meet and the side is round from top to bottom; edge_radius = edge_bulge gives
 // round edges on a straight side.
 // Layer i spans i..i+1, so the top rounding is evaluated at the layer's top.
 edge_bulge = 2.5;
-edge_radius = case_top / 2;
+// a hair under case_top / 2: exactly half leaves a degenerate sliver in the
+// cover that OpenSCAD's 3MF export rejects
+edge_radius = 4.5;
 function quarter_round(d) =
     edge_bulge * sqrt(max(0, 1 - pow(max(0, edge_radius - d) / edge_radius, 2)));
 function wall_profile(i, t) = min(quarter_round(i), quarter_round(t + 1 - (i + 1)));
