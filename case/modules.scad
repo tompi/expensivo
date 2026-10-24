@@ -197,12 +197,15 @@ module magnet() {
 case_top = 9.1;
 
 // Edge profile of a wall whose last 1mm layer starts at t: bulges out to
-// edge_bulge mid-height, rounded into the bottom and the top by a quarter circle.
+// edge_bulge, rounded into the bottom and the top by a quarter ellipse,
+// edge_bulge wide and edge_radius high. At half the case height the two meet
+// and the side is round from top to bottom; edge_radius = edge_bulge gives
+// round edges on a straight side.
 // Layer i spans i..i+1, so the top rounding is evaluated at the layer's top.
 edge_bulge = 2.5;
-edge_radius = 2.5;
-function quarter_round(d) = edge_bulge - edge_radius
-    + sqrt(max(0, pow(edge_radius, 2) - pow(max(0, edge_radius - d), 2)));
+edge_radius = case_top / 2;
+function quarter_round(d) =
+    edge_bulge * sqrt(max(0, 1 - pow(max(0, edge_radius - d) / edge_radius, 2)));
 function wall_profile(i, t) = min(quarter_round(i), quarter_round(t + 1 - (i + 1)));
 
 // Board outline plus the nano's USB end, which overhangs the board edge.
@@ -313,7 +316,7 @@ roof = 1.2;
 keycap = 18.2;
 keycap_clearance = 0.5;
 hump_wall = 1.5;         // side wall between the nano and the keys next to it
-hump_round = edge_radius;  // radius of the raised section's top edges, as on the case edge
+hump_round = 2.5;          // radius of the raised section's top edges
 
 nano_top = top_of_pcb + socket_height + nano_thickness;
 cavity_top = nano_top + nano_parts + fit;
