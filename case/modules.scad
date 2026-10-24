@@ -491,11 +491,13 @@ module usb_end_cut(round_bottom=undef, round_top=undef) {
 }
 
 // The slide switch lever sticks out of the right edge: slot the wall for it.
+// The lever's slot reaches 1 mm below the pcb's top face, so the lever isn't
+// caught and bent while the board goes into the frame.
 module power_switch_cutout() {
     color("orange") translate([0, 0, top_of_pcb]) {
         box(power_switch, 2, 0.5);
         cy = (power_switch[1] + power_switch[3]) / 2;
-        translate([power_switch[0], cy - 2.5, 0]) cube([20, 5, 2.5]);
+        translate([power_switch[0], cy - 2.5, -1]) cube([20, 5, 3.5]);
     }
 }
 
@@ -516,7 +518,8 @@ module encoder_cutout() {
 // the same shape mirrored. With the encoder fitted there is no room for the
 // cover's magnets.
 module top_cutouts(encoder=false) {
-    linear_extrude(top_of_pcb) offset(delta=0.45) base();
+    // from below the case's bottom face: flush with it, the cut leaves stray skin
+    translate([0,0,-1]) linear_extrude(top_of_pcb + 1) offset(delta=0.45) base();
     translate([0,0,top_of_pcb]) switch_holes();
     mcu_cutout();
     usb_end_cut(round_bottom=0);
