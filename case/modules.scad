@@ -303,7 +303,7 @@ nano_parts = 1.3;        // parts and trimmed pins on top of the nano
 // nice!nano v2 model; the common 33 x 17.78 mm clones match)
 usb_width = 8.94;
 usb_height = 2.96;
-usb_below = 1.38;        // shell bottom below the nano's underside
+usb_below = 0.88;        // shell bottom below the nano's underside (measured 1.38 on the model; the port sits 0.5 mm higher)
 usb_protrude = 0.74;     // shell mouth past the nano's board edge
 usb_depth = 7.3;         // shell length
 usb_fit = 0.25;          // clearance around the shell
