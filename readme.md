@@ -1,6 +1,8 @@
 Expensivo
 =========
 
+![Expensivo: both halves, built, with a trackball in between](docs/images/expensivo.jpg)
+
 A wireless version of the [Cheapino](https://github.com/tompi/cheapino): same
 shape and key layout, but with a nice!nano in each half, ZMK and Bluetooth
 between the halves. Not quite as cheap anymore, hence the name.
