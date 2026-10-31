@@ -106,6 +106,8 @@ The pin map shared by the PCB, schematic and firmware is in
 `scripts/layout.py`. Routing is done by Freerouting (downloaded on first run,
 needs Java). The scripts expect KiCad 8 in `/Applications/KiCad`.
 
+![Both halves without a case: switches, nice!nanos and batteries on the PCBs](docs/images/expensivo_bare.jpg)
+
 License
 -------
 
