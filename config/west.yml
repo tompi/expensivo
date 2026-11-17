@@ -2,12 +2,15 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
+    - name: tompi
+      url-base: https://github.com/tompi
     # Additional modules containing boards/shields/custom code can be listed here as well
     # See https://docs.zephyrproject.org/3.2.0/develop/west/manifest.html#projects
   projects:
+    # Fork that lets ZMK Studio change hold-tap timings (tapping term etc.) at runtime
     - name: zmk
-      remote: zmkfirmware
-      revision: main
+      remote: tompi
+      revision: feat/behavior-settings
       import: app/west.yml
   self:
     path: config
